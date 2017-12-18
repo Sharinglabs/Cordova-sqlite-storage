@@ -12,8 +12,6 @@
 
 #include <regex.h>
 
-#import <Cordova/NSData+Base64.h>
-
 static void sqlite_regexp(sqlite3_context* context, int argc, sqlite3_value** values) {
     if ( argc < 2 ) {
         sqlite3_result_error(context, "SQL function regexp() called with missing arguments.", -1);
@@ -567,23 +565,6 @@ static void sqlite_regexp(sqlite3_context* context, int argc, sqlite3_value** va
         default:
             return UNKNOWN_ERR;
     }
-}
-
-+(NSString*)getBlobAsBase64String:(const char*)blob_chars
-                       withLength:(int)blob_length
-{
-    size_t outputLength = 0;
-    char* outputBuffer = CDVNewBase64Encode(blob_chars, blob_length, true, &outputLength);
-
-    NSString* result = [[NSString alloc] initWithBytesNoCopy:outputBuffer
-                                                      length:outputLength
-                                                    encoding:NSASCIIStringEncoding
-                                                freeWhenDone:YES];
-#if !__has_feature(objc_arc)
-    [result autorelease];
-#endif
-
-    return result;
 }
 
 @end /* vim: set expandtab : */
