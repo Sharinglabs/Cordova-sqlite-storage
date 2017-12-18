@@ -413,6 +413,7 @@ static void sqlite_regexp(sqlite3_context* context, int argc, sqlite3_value** va
                             columnValue = [@"sqlblob:;base64," stringByAppendingString:columnValue];
 #endif
                             break;
+#endif // else
                         case SQLITE_FLOAT:
                             columnValue = [NSNumber numberWithDouble: sqlite3_column_double(statement, i)];
                             break;
