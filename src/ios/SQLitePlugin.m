@@ -12,6 +12,11 @@
 
 #include <regex.h>
 
+// NOTE: This is now broken by cordova-ios 4.0:
+#ifdef READ_BLOB_AS_BASE64
+ #import <Cordova/NSData+Base64.h>
+#endif
+
 static void sqlite_regexp(sqlite3_context* context, int argc, sqlite3_value** values) {
     if ( argc < 2 ) {
         sqlite3_result_error(context, "SQL function regexp() called with missing arguments.", -1);
@@ -49,7 +54,7 @@ static void sqlite_regexp(sqlite3_context* context, int argc, sqlite3_value** va
 
 -(CDVPlugin*) initWithWebView:(UIWebView*)theWebView
 {
-    self = (SQLitePlugin*)[super initWithWebView:theWebView];
+    [self pluginInitialize];
     if (self) {
         openDBs = [NSMutableDictionary dictionaryWithCapacity:0];
         appDBPaths = [NSMutableDictionary dictionaryWithCapacity:0];
@@ -401,6 +406,7 @@ static void sqlite_regexp(sqlite3_context* context, int argc, sqlite3_value** va
 #endif
                             break;
                         case SQLITE_BLOB:
+#ifdef READ_BLOB_AS_BASE64
                             columnValue = [SQLitePlugin getBlobAsBase64String: sqlite3_column_blob(statement, i)
                                                         withLength: sqlite3_column_bytes(statement, i)];
 #ifdef INCLUDE_SQL_BLOB_BINDING // TBD subjet to change:
@@ -566,5 +572,24 @@ static void sqlite_regexp(sqlite3_context* context, int argc, sqlite3_value** va
             return UNKNOWN_ERR;
     }
 }
+
+#ifdef READ_BLOB_AS_BASE64
+ +(NSString*)getBlobAsBase64String:(const char*)blob_chars
+                        withLength:(int)blob_length
+ {
+     size_t outputLength = 0;
+     char* outputBuffer = CDVNewBase64Encode(blob_chars, blob_length, true, &outputLength);
+ 
+     NSString* result = [[NSString alloc] initWithBytesNoCopy:outputBuffer
+                                                       length:outputLength
+                                                     encoding:NSASCIIStringEncoding
+                                                 freeWhenDone:YES];
+ #if !__has_feature(objc_arc)
+     [result autorelease];
+ #endif
+ 
+     return result;
+ }
+#endif
 
 @end /* vim: set expandtab : */
